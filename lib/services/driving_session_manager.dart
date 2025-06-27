@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:app/services/auth_headers_mixin.dart';
+import 'package:app/services/report_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
+import '../main.dart';
 import '../models/sensor_data.dart';
 
 class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
@@ -15,7 +18,7 @@ class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
   static const _baseUrl = 'http://192.168.254.37:8000/api';
   final Uri _sessionStartUrl = Uri.parse('$_baseUrl/sessions/');
   final Uri _sessionStopUrl = Uri.parse('$_baseUrl/sessions/stop');
-  final Uri websocketUrl = Uri.parse('ws://192.168.254.37:8000/ws');
+  final Uri websocketUrl = Uri.parse('ws://192.168.254.37:8000/api/behavior/');
 
   final List<SensorData> _buffer = [];
   Timer? _samplingTimer;
@@ -25,10 +28,21 @@ class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
   String? _currentSessionId;
   String  _currentPrediction = 'INATTIVO';
 
+  double? _lastKnownMaintenanceScore;
+
   bool get isSessionActive => _sessionActive;
   String get currentPrediction => _currentPrediction;
 
   Future<void> startSession() async {
+    try {
+      final reportService = ReportService();
+      final user = await reportService.updateMaintenanceUrgency();
+      _lastKnownMaintenanceScore = user.maintenanceUrgency;
+    } catch (e) {
+      debugPrint('Impossibile ottenere maintenanceUrgency iniziale: $e');
+      _lastKnownMaintenanceScore = null;
+    }
+
     final headers = await authHeaders();
     final resp = await http.post(
       _sessionStartUrl,
@@ -63,7 +77,42 @@ class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
 
     _sessionActive = false;
     _currentSessionId = null;
+    _currentPrediction = 'INATTIVO';
     notifyListeners();
+
+    try {
+      final reportService = ReportService();
+      final updatedUser = await reportService.updateMaintenanceUrgency();
+      final double? newScore = updatedUser.maintenanceUrgency;
+
+      if (_lastKnownMaintenanceScore != null &&
+          newScore != null &&
+          (( _lastKnownMaintenanceScore! * 100).round() != (newScore * 100).round() )) {
+
+        const notifDetails = NotificationDetails(
+          android: AndroidNotificationDetails(
+            'maintenance_channel',
+            'Manutenzione',
+            channelDescription: 'Notifiche sullo stato di manutenzione',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            visibility: NotificationVisibility.public,
+          ),
+        );
+
+        await flutterLocalNotificationsPlugin.show(
+          0,
+          'Aggiornamento manutenzione',
+          'La predizione della manutenzione è stata aggiornata.',
+          notifDetails,
+        );
+      }
+
+      _lastKnownMaintenanceScore = newScore;
+    } catch (e) {
+      debugPrint('Errore durante il controllo manutenzione: $e');
+    }
   }
 
   void addSensorData(SensorData data) {
@@ -87,7 +136,6 @@ class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
       if (jsonMsg['type'] == 'prediction') {
         _currentPrediction = jsonMsg['label'] as String;
         notifyListeners();
-        await _saveBehavior(jsonMsg['label'] as String);
       }
     });
   }
@@ -108,20 +156,5 @@ class DrivingSessionManager with ChangeNotifier, AuthHeadersMixin {
       'payload': payload,
       'session_id': _currentSessionId,
     }));
-  }
-
-  Future<void> _saveBehavior(String label) async {
-    if (_currentSessionId == null) return;
-    final headers = await authHeaders();
-    final url = Uri.parse('$_baseUrl/sessions/behaviors');
-    await http.post(
-      url,
-      headers: headers,
-      body: jsonEncode({
-        'session_id': _currentSessionId,
-        'timestamp' : DateTime.now().toIso8601String(),
-        'label'     : label,
-      }),
-    );
   }
 }

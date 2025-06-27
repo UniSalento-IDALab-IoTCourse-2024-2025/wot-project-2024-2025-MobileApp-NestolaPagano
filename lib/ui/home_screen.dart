@@ -1,3 +1,4 @@
+import 'package:app/ui/session_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'report_screen.dart';
@@ -13,18 +14,62 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    SensorDashboard(),
-    ReportScreen(),
-    ProfileScreen(),
-  ];
+  String? _selectedSessionId;
+  DateTime? _selectedStartTime;
+
+  void _openSessionDetail(String sessionId, DateTime startTime) {
+    setState(() {
+      _selectedSessionId = sessionId;
+      _selectedStartTime = startTime;
+      _currentIndex = 1;
+    });
+  }
+
+  void _closeSessionDetail() {
+    setState(() {
+      _selectedSessionId = null;
+      _selectedStartTime = null;
+    });
+  }
+
+
+  late final List<Widget> _basePages;
+
+  @override
+  void initState() {
+    super.initState();
+    _basePages = [
+      const SensorDashboard(),
+      _buildReportPage(),
+      const ProfileScreen(),
+    ];
+  }
+
+  Widget _buildReportPage() {
+    if (_selectedSessionId != null && _selectedStartTime != null) {
+      return SessionDetailScreen(
+        sessionId: _selectedSessionId!,
+        startTime: _selectedStartTime!,
+        onBack: _closeSessionDetail,
+      );
+    } else {
+      return ReportScreen(
+        onOpenSession: _openSessionDetail,
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: [
+          _basePages[0],
+          _buildReportPage(),
+          _basePages[2],
+        ],
       ),
 
       bottomNavigationBar: BottomNavigationBar(

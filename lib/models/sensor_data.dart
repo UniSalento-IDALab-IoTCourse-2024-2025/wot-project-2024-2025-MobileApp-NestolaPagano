@@ -4,7 +4,7 @@ class SensorData {
   final double accelY;
   final double accelZ;
 
-  /// Velocità angolare filtrata (rad/s)
+  /// Velocità angolare filtrata (°/s)
   final double gyroX;
   final double gyroY;
   final double gyroZ;

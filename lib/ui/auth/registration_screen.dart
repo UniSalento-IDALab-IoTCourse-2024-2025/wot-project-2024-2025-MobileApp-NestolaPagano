@@ -12,12 +12,11 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController    = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-
   bool _obscurePassword = true;
 
   Future<void> _submitForm() async {
@@ -42,7 +41,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       setState(() {
         _errorMessage = regErr.message;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _errorMessage = 'Registrazione fallita: errore sconosciuto.';
       });
@@ -69,7 +68,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -85,7 +84,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 16),
-
                     Column(
                       children: [
                         Icon(
@@ -97,27 +95,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         Text(
                           'Crea il tuo account',
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onBackground,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Compila i campi per registrarti',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onBackground.withOpacity(0.7),
+                            color: Colors.grey[600],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 32),
-
-                    Card(
-                      shape: RoundedRectangleBorder(
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      elevation: 6,
-                      shadowColor: Colors.black26,
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
@@ -141,8 +145,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     decoration: InputDecoration(
                                       labelText: 'Nome completo',
                                       prefixIcon: const Icon(Icons.person),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     textInputAction: TextInputAction.next,
@@ -154,14 +160,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     },
                                   ),
                                   const SizedBox(height: 16),
-
                                   TextFormField(
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       labelText: 'Email',
                                       prefixIcon: const Icon(Icons.email),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     keyboardType: TextInputType.emailAddress,
@@ -170,8 +177,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                       if (value == null || value.trim().isEmpty) {
                                         return 'Inserisci la tua email';
                                       }
-                                      final emailRegex =
-                                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                                       if (!emailRegex.hasMatch(value.trim())) {
                                         return 'Email non valida';
                                       }
@@ -179,43 +185,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     },
                                   ),
                                   const SizedBox(height: 16),
-
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
                                     decoration: InputDecoration(
                                       labelText: 'Password',
                                       prefixIcon: const Icon(Icons.lock),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                            _obscurePassword
-                                                ? Icons.visibility_off
-                                                : Icons.visibility,
-                                            color: theme.colorScheme.onSurface.withAlpha(153)
+                                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                          color: Colors.grey,
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _obscurePassword =
-                                            !_obscurePassword;
+                                            _obscurePassword = !_obscurePassword;
                                           });
                                         },
                                       ),
                                     ),
                                     textInputAction: TextInputAction.done,
                                     validator: (value) {
-                                      if (value == null ||
-                                          value.trim().length < 8) {
+                                      if (value == null || value.trim().length < 8) {
                                         return 'La password deve essere di almeno 8 caratteri';
                                       }
                                       return null;
                                     },
                                   ),
                                   const SizedBox(height: 24),
-
                                   SizedBox(
                                     width: double.infinity,
                                     height: 48,
@@ -224,9 +225,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                         backgroundColor: theme.colorScheme.primary,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        elevation: 4,
+                                        elevation: 3,
                                       ),
                                       onPressed: _isLoading ? null : _submitForm,
                                       child: _isLoading
@@ -240,7 +241,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                       )
                                           : const Text(
                                         'Registrati',
-                                        style: TextStyle(fontSize: 16),
+                                        style: TextStyle(fontSize: 12),
                                       ),
                                     ),
                                   ),
@@ -251,30 +252,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Hai già un account? '),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacementNamed(context, '/login');
-                          },
-                          child: Text(
-                            'Accedi',
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Hai già un account?'),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
+                            child: Text(
+                              'Accedi',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),

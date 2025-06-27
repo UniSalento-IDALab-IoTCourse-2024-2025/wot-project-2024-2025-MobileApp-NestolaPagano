@@ -31,7 +31,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profilo'),
         centerTitle: true,
-        elevation: 2,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey.shade300,
+            height: 1.0,
+          ),
+        ),
       ),
       body: SafeArea(
         child: Center(
@@ -44,37 +51,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: theme.primaryColor,
                     child: Text(
                       user.full_name.substring(0, 1).toUpperCase(),
-                      style: theme.textTheme.headlineLarge?.copyWith(
+                      style: theme.textTheme.headlineMedium?.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   Text(
                     user.full_name,
-                    style: theme.textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user.email,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 24),
-
                   Card(
+                    color: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    elevation: 8,
-                    shadowColor: Colors.black26,
+                    elevation: 6,
+                    shadowColor: Colors.black12,
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -88,39 +96,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 .split('.')[0],
                             theme: theme,
                           ),
-                          const Divider(height: 32),
-                          _buildInfoRow(
-                            icon: Icons.devices,
-                            label: 'Dispositivi',
-                            value: user.connectedDevices.isNotEmpty
-                                ? user.connectedDevices.join(', ')
-                                : 'Nessuno',
-                            theme: theme,
-                          ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 32),
-
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: theme.colorScheme.primary),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: theme.primaryColor,
+                        backgroundColor: Colors.white,
+                        side: BorderSide(color: theme.primaryColor),
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: _showChangePasswordDialog,
                       child: Text(
                         'Cambia password',
-                        style: theme.textTheme.labelLarge
-                            ?.copyWith(color: theme.colorScheme.primary),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: theme.primaryColor,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(
@@ -129,13 +130,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: theme.colorScheme.error,
                         shape: const StadiumBorder(),
-                        padding:
-                        const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () async {
                         await auth.logout();
-                        Navigator.pushReplacementNamed(
-                            context, '/login');
+                        Navigator.pushReplacementNamed(context, '/login');
                       },
                     ),
                   ),
@@ -156,12 +155,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return Row(
       children: [
-        Icon(icon, color: theme.colorScheme.primary),
+        Icon(icon, color: theme.primaryColor),
         const SizedBox(width: 12),
         Text(
           '$label:',
-          style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600),
+          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -187,154 +185,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
         bool obscureNew = true;
 
         return StatefulBuilder(
-          builder: (context, setState) =>
-              AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                title: Text(
-                    'Cambia Password', style: theme.textTheme.headlineSmall),
-                content: Form(
-                  key: _formKeyPwd,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: _oldPwdController,
-                        obscureText: obscureOld,
-                        decoration: InputDecoration(
-                          labelText: 'Password attuale',
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureOld ? Icons.visibility_off : Icons
-                                  .visibility,
+          builder: (context, setState) => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Cambio Password',
+                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w400),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Form(
+                    key: _formKeyPwd,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _oldPwdController,
+                          obscureText: obscureOld,
+                          decoration: InputDecoration(
+                            labelText: 'Password attuale',
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureOld ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () => setState(() => obscureOld = !obscureOld),
                             ),
-                            onPressed: () =>
-                                setState(() => obscureOld = !obscureOld),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          validator: (val) {
+                            if (val == null || val.isEmpty) {
+                              return 'Inserisci la password attuale';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (val) {
-                          if (val == null || val.isEmpty) {
-                            return 'Inserisci password attuale';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _newPwdController,
-                        obscureText: obscureNew,
-                        decoration: InputDecoration(
-                          labelText: 'Nuova password',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureNew ? Icons.visibility_off : Icons
-                                  .visibility,
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _newPwdController,
+                          obscureText: obscureNew,
+                          decoration: InputDecoration(
+                            labelText: 'Nuova password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureNew ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () => setState(() => obscureNew = !obscureNew),
                             ),
-                            onPressed: () =>
-                                setState(() => obscureNew = !obscureNew),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          validator: (val) {
+                            if (val == null || val.length < 8) {
+                              return 'Minimo 8 caratteri';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (val) {
-                          if (val == null || val.length < 8) {
-                            return 'Almeno 8 caratteri';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      if (_pwdError != null) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _pwdError!,
-                          style: TextStyle(
-                            color: theme.colorScheme.error,
-                            fontWeight: FontWeight.w500,
+                        if (_pwdError != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            _pwdError!,
+                            style: TextStyle(
+                              color: theme.colorScheme.error,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-                actionsPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(dialogContext, rootNavigator: true).pop();
-                    },
-                    child: Text('Annulla', style: theme.textTheme.labelLarge),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
                     ),
-                    onPressed: () async {
-                      if (!_formKeyPwd.currentState!.validate()) return;
-                      final auth = Provider.of<AuthService>(
-                          context, listen: false);
-                      final success = await auth.changePassword(
-                        oldPassword: _oldPwdController.text,
-                        newPassword: _newPwdController.text,
-                      );
-                      if (success) {
-                        Navigator.of(dialogContext, rootNavigator: true).pop();
-
-                        showDialog(
-                          context: context,
-                          builder: (successContext) {
-                            return AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              title: Text('Successo',
-                                  style: theme.textTheme.headlineSmall),
-                              content: Text(
-                                'Password aggiornata con successo.',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              actions: [
-                                Center(
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      shape: const StadiumBorder(),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                    ),
-                                    onPressed: () {
-                                      Navigator
-                                          .of(
-                                          successContext, rootNavigator: true)
-                                          .pop();
-                                    },
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext, rootNavigator: true).pop();
+                        },
+                        child: Text('Annulla', style: theme.textTheme.labelLarge),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (!_formKeyPwd.currentState!.validate()) return;
+                          final auth = Provider.of<AuthService>(context, listen: false);
+                          final success = await auth.changePassword(
+                            oldPassword: _oldPwdController.text,
+                            newPassword: _newPwdController.text,
+                          );
+                          if (success) {
+                            Navigator.of(dialogContext, rootNavigator: true).pop();
+                            showDialog(
+                              context: context,
+                              builder: (successContext) => AlertDialog(
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: Text('Successo', style: theme.textTheme.headlineSmall),
+                                content: Text(
+                                  'Password aggiornata con successo.',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(successContext, rootNavigator: true).pop(),
                                     child: const Text('OK'),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             );
-                          },
-                        );
-                      } else {
-                        setState(() {
-                          _pwdError = 'Impossibile cambiare password';
-                        });
-                      }
-                    },
-                    child: const Text('Conferma'),
+                          } else {
+                            setState(() {
+                              _pwdError = 'Errore durante il cambio password';
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        child: const Text('Conferma'),
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+          ),
         );
       },
     );

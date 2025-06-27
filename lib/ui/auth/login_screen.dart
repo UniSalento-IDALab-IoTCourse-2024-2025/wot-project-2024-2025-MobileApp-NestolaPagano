@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 
@@ -11,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController    = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
@@ -34,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        _requestPermissions();
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() {
@@ -60,13 +62,20 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _requestPermissions() async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      await Permission.notification.request();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -82,7 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 16),
-
                     Column(
                       children: [
                         Icon(
@@ -94,27 +102,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           'Accedi al tuo account',
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Inserisci le tue credenziali',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withAlpha(153),
+                            color: Colors.grey[600],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 32),
-
-                    Card(
-                      shape: RoundedRectangleBorder(
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      elevation: 6,
-                      shadowColor: Colors.black26,
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
@@ -129,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                             ],
-
                             Form(
                               key: _formKey,
                               child: Column(
@@ -139,8 +152,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     decoration: InputDecoration(
                                       labelText: 'Email',
                                       prefixIcon: const Icon(Icons.email),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     keyboardType: TextInputType.emailAddress,
@@ -158,23 +173,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                                   ),
                                   const SizedBox(height: 16),
-
                                   TextFormField(
                                     controller: _passwordController,
                                     decoration: InputDecoration(
                                       labelText: 'Password',
                                       prefixIcon: const Icon(Icons.lock),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscurePassword
                                               ? Icons.visibility_off
                                               : Icons.visibility,
-                                          color: theme.colorScheme
-                                              .onSurface
-                                              .withAlpha(153),
+                                          color: Colors.grey,
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -196,7 +210,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                                   ),
                                   const SizedBox(height: 24),
-
                                   SizedBox(
                                     width: double.infinity,
                                     height: 48,
@@ -205,9 +218,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         backgroundColor: theme.colorScheme.primary,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        elevation: 4,
+                                        elevation: 3,
                                       ),
                                       onPressed: _isLoading ? null : _submitLogin,
                                       child: _isLoading
@@ -221,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       )
                                           : const Text(
                                         'Accedi',
-                                        style: TextStyle(fontSize: 16),
+                                        style: TextStyle(fontSize: 14),
                                       ),
                                     ),
                                   ),
@@ -233,27 +246,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Non hai un account? '),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacementNamed(context, '/register');
-                          },
-                          child: Text(
-                            'Registrati',
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Non hai un account?'),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/register');
+                            },
+                            child: Text(
+                              'Registrati',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
