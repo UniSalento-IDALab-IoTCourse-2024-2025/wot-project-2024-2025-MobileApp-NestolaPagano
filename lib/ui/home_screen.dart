@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:app/ui/session_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'dashboard.dart';
@@ -32,7 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   late final List<Widget> _basePages;
 
   @override
@@ -59,41 +59,50 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          _basePages[0],
-          _buildReportPage(),
-          _basePages[2],
-        ],
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: [
+              _basePages[0],
+              _buildReportPage(),
+              _basePages[2],
+            ],
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            backgroundColor: const Color(0xff6750a4),
+            elevation: 0,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.white70,
+            currentIndex: _currentIndex,
+            type: BottomNavigationBarType.fixed,
+            onTap: (int idx) {
+              setState(() {
+                _currentIndex = idx;
+              });
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard),
+                label: 'Dashboard',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.bar_chart),
+                label: 'Report',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profilo',
+              ),
+            ],
+          ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (int idx) {
-          setState(() {
-            _currentIndex = idx;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Report',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profilo',
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

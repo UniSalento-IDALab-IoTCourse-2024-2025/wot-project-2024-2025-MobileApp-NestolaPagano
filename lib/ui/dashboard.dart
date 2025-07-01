@@ -1,6 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import '../ble/bluetooth_manager.dart';
 import '../ble/thingy_ble.dart';
 import '../services/driving_session_manager.dart';
@@ -93,153 +94,189 @@ class _SensorDashboardState extends State<SensorDashboard> {
   Widget build(BuildContext context) {
     final session = context.watch<DrivingSessionManager>();
     final ble = Provider.of<BluetoothManager>(context, listen: false);
-    final theme = Theme.of(context);
+
+    final backgroundColor = const Color(0xFFF8F8F8);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
-      appBar: AppBar(
-        title: const Text('Stile di guida'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
-              color: _isConnected ? Colors.blueAccent : Colors.grey,
-            ),
-            onPressed: _isConnected ? null : _selectAndConnect,
-          )
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: Colors.grey.shade300,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          StreamBuilder<bool>(
-            stream: ble.connectionStream,
-            initialData: ble.isConnected,
-            builder: (ctx, snap) {
-              if (!snap.hasData) return const SizedBox.shrink();
-              final connected = snap.data!;
-
-              return Container(
-                width: double.infinity,
-                color: connected ? Colors.green[100] : Colors.red[100],
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                child: Text(
-                  connected
-                      ? '✔ Dispositivo BLE connesso'
-                      : '⚠ Dispositivo BLE disconnesso',
-                  style: TextStyle(
-                    color: connected ? Colors.green[800] : Colors.red[800],
-                    fontWeight: FontWeight.w400,
-                    fontSize: 14,
+      extendBodyBehindAppBar: true,
+      backgroundColor: backgroundColor,
+      body: Container(
+        color: backgroundColor,
+        child: Column(
+          children: [
+            const SizedBox(height: kToolbarHeight + 34),
+            StreamBuilder<bool>(
+              stream: ble.connectionStream,
+              initialData: ble.isConnected,
+              builder: (ctx, snap) {
+                if (!snap.hasData) return const SizedBox.shrink();
+                final connected = snap.data!;
+                return Container(
+                  width: double.infinity,
+                  color: connected ? Colors.green[100]?.withOpacity(0.6) : Colors.red[100]?.withOpacity(0.6),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: Text(
+                    connected
+                        ? '✔ Dispositivo BLE connesso'
+                        : '⚠ Dispositivo BLE disconnesso',
+                    style: TextStyle(
+                      color: connected ? Colors.green[900] : Colors.red[900],
+                      fontWeight: FontWeight.w400,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              );
-            },
-          ),
-          Expanded(
-            child: Center(
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 6,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          italianLabels[session.currentPrediction] ?? session.currentPrediction,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF333333),
-                            letterSpacing: 0.5,
+                );
+              },
+            ),
+            Expanded(
+              child: Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: Color(0xff6750a4),
+                          width: 2.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xff6750a4).withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Icon(
-                          session.currentPrediction == 'AGGRESSIVE'
-                              ? Icons.sentiment_very_dissatisfied
-                              : session.currentPrediction == 'NORMAL'
-                              ? Icons.sentiment_satisfied
-                              : session.currentPrediction == 'SLOW'
-                              ? Icons.sentiment_very_satisfied
-                              : Icons.sentiment_neutral,
-                          size: 80,
-                          color: session.currentPrediction == 'AGGRESSIVE'
-                              ? Colors.red
-                              : session.currentPrediction == 'NORMAL'
-                              ? Colors.orange
-                              : session.currentPrediction == 'SLOW'
-                              ? Colors.green
-                              : Colors.grey,
-                        ),
-                        const SizedBox(height: 40),
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              if (session.isSessionActive) {
-                                await session.stopSession();
-                                setState(() => _isConnected = false);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    duration: const Duration(seconds: 6),
-                                    content: Row(
-                                      children: const [
-                                        Icon(Icons.check_circle, color: Color(0xff6750a4), size: 28),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Sessione terminata correttamente!\nReport e manutenzione disponibili nelle sezioni dedicate.',
-                                            style: TextStyle(
-                                              color: Colors.black87,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            italianLabels[session.currentPrediction] ?? 'INATTIVO',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                              color: session.currentPrediction == 'AGGRESSIVE'
+                                  ? Colors.red
+                                  : session.currentPrediction == 'NORMAL'
+                                  ? Colors.orangeAccent
+                                  : session.currentPrediction == 'SLOW'
+                                  ? Colors.green[900]
+                                  : Color(0xff6750a4),
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Icon(
+                            session.currentPrediction == 'AGGRESSIVE'
+                                ? Icons.sentiment_very_dissatisfied
+                                : session.currentPrediction == 'NORMAL'
+                                ? Icons.sentiment_satisfied
+                                : session.currentPrediction == 'SLOW'
+                                ? Icons.sentiment_very_satisfied
+                                : Icons.sentiment_neutral,
+                            size: 80,
+                            color: session.currentPrediction == 'AGGRESSIVE'
+                                ? Colors.red
+                                : session.currentPrediction == 'NORMAL'
+                                ? Colors.orangeAccent
+                                : session.currentPrediction == 'SLOW'
+                                ? Colors.green[900]
+                                : Color(0xff6750a4),
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff6750a4),
+                              foregroundColor: backgroundColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            onPressed: () async {
+                              try {
+                                if (session.isSessionActive) {
+                                  await session.stopSession();
+                                  setState(() => _isConnected = false);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      duration: const Duration(seconds: 6),
+                                      content: Row(
+                                        children: const [
+                                          Icon(Icons.check_circle, color: Colors.white, size: 28),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Sessione terminata correttamente!\nReport e manutenzione disponibili nelle sezioni dedicate.',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
+                                      backgroundColor: Color(0xff6750a4),
                                     ),
+                                  );
+                                } else {
+                                  if (!_isConnected) {
+                                    await _selectAndConnect();
+                                  }
+                                  if (_isConnected) {
+                                    await session.startSession();
+                                  }
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Errore: ${e.toString()}"),
                                   ),
                                 );
-                              } else {
-                                if (!_isConnected) {
-                                  await _selectAndConnect();
-                                }
-                                if (_isConnected) {
-                                  await session.startSession();
-                                }
                               }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Errore: ${e.toString()}"),
-                                ),
-                              );
-                            }
-                          },
-                          icon: Icon(session.isSessionActive ? Icons.stop : Icons.play_arrow),
-                          label: Text(session.isSessionActive ? 'Termina sessione' : 'Avvia sessione'),
-                        ),
-                      ],
+                            },
+                            icon: Icon(session.isSessionActive ? Icons.stop : Icons.play_arrow),
+                            label: Text(session.isSessionActive ? 'Termina sessione' : 'Avvia sessione'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                )
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          backgroundColor: Color(0xff6750a4),
+          elevation: 0,
+          title: Text(
+            'Stile di guida',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: backgroundColor,
             ),
           ),
-        ],
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(
+                _isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
+                color: backgroundColor,
+              ),
+              onPressed: _isConnected ? null : _selectAndConnect,
+            ),
+          ],
+        ),
       ),
     );
   }

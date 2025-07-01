@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../exceptions/registration_exception.dart';
@@ -21,36 +22,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
+    setState(() => _isLoading = true);
+    setState(() => _errorMessage = null);
     try {
       final user = await Provider.of<AuthService>(context, listen: false).register(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         full_name: _fullNameController.text.trim(),
       );
-
       if (user != null) {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on RegistrationException catch (regErr) {
-      setState(() {
-        _errorMessage = regErr.message;
-      });
+      setState(() => _errorMessage = regErr.message);
     } catch (_) {
-      setState(() {
-        _errorMessage = 'Registrazione fallita: errore sconosciuto.';
-      });
+      setState(() => _errorMessage = 'Registrazione fallita: errore sconosciuto.');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -64,225 +52,186 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
+    final purple = Theme.of(context).primaryColor;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: screenHeight - MediaQuery.of(context).padding.vertical,
+      body: Stack(
+        children: [
+          Container(
+            height: size.height,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/app_bg.png'),
+                fit: BoxFit.cover,
               ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 16),
-                    Column(
-                      children: [
-                        Icon(
-                          Icons.person_add_alt_1,
-                          size: 80,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Crea il tuo account',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Compila i campi per registrarti',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: purple.withOpacity(0.2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.person_add_alt_1, size: 72, color: purple),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Crea il tuo account',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: purple),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Inserisci i dati per registrarti',
+                          style: const TextStyle(color: Colors.black87),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        if (_errorMessage != null) ...[
+                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 16),
                         ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          children: [
-                            if (_errorMessage != null) ...[
-                              Text(
-                                _errorMessage!,
-                                style: TextStyle(
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.w500,
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _fullNameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Nome completo',
+                                  prefixIcon: const Icon(Icons.person),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.25),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: purple, width: 1.5),
+                                  ),
                                 ),
+                                textInputAction: TextInputAction.next,
+                                validator: (val) {
+                                  if (val == null || val.trim().isEmpty) return 'Inserisci nome';
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 16),
-                            ],
-                            Form(
-                              key: _formKey,
-                              child: Column(
-                                children: [
-                                  TextFormField(
-                                    controller: _fullNameController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Nome completo',
-                                      prefixIcon: const Icon(Icons.person),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    textInputAction: TextInputAction.next,
-                                    validator: (value) {
-                                      if (value == null || value.trim().isEmpty) {
-                                        return 'Inserisci il tuo nome';
-                                      }
-                                      return null;
-                                    },
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  prefixIcon: const Icon(Icons.email_outlined),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.25),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
                                   ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _emailController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Email',
-                                      prefixIcon: const Icon(Icons.email),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.next,
-                                    validator: (value) {
-                                      if (value == null || value.trim().isEmpty) {
-                                        return 'Inserisci la tua email';
-                                      }
-                                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                                      if (!emailRegex.hasMatch(value.trim())) {
-                                        return 'Email non valida';
-                                      }
-                                      return null;
-                                    },
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: purple, width: 1.5),
                                   ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    decoration: InputDecoration(
-                                      labelText: 'Password',
-                                      prefixIcon: const Icon(Icons.lock),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                          color: Colors.grey,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword = !_obscurePassword;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    textInputAction: TextInputAction.done,
-                                    validator: (value) {
-                                      if (value == null || value.trim().length < 8) {
-                                        return 'La password deve essere di almeno 8 caratteri';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 24),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: theme.colorScheme.primary,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        elevation: 3,
-                                      ),
-                                      onPressed: _isLoading ? null : _submitForm,
-                                      child: _isLoading
-                                          ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                          : const Text(
-                                        'Registrati',
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                validator: (val) {
+                                  if (val == null || val.isEmpty) return 'Inserisci email';
+                                  if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val)) {
+                                    return 'Email non valida';
+                                  }
+                                  return null;
+                                },
                               ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                    ),
+                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.25),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(color: purple, width: 1.5),
+                                  ),
+                                ),
+                                textInputAction: TextInputAction.done,
+                                validator: (val) {
+                                  if (val == null || val.length < 8) return 'Minimo 8 caratteri';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: purple,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                  ),
+                                  onPressed: _isLoading ? null : _submitForm,
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                    width: 22, height: 22,
+                                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                                  )
+                                      : const Text('Registrati', style: TextStyle(fontSize: 14, color: Colors.white)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Hai già un account?'),
+                            TextButton(
+                              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                              child: Text('Accedi', style: TextStyle(color: purple)),
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Hai già un account?'),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacementNamed(context, '/login');
-                            },
-                            child: Text(
-                              'Accedi',
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
